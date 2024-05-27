@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/Subscriber.dir/src/JSONConfig.cpp.o CMakeFiles/Subscriber.dir/subscriber/main.cpp.o -o Subscriber  /usr/local/lib/libSimpleAmqpClient.so /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.74.0 /usr/lib/x86_64-linux-gnu/libboost_atomic.so.1.74.0 

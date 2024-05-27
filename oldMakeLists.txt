@@ -1,0 +1,56 @@
+project(RobitMQ)
+cmake_minimum_required(VERSION 3.2)
+set(CLIENT_PATH /usr/local/lib)
+set(SUBSCRIBER_EXECUTABLE, "SubRobit")
+set(PUBLISHER_EXECUTABLE, "PubRobit")
+
+
+add_library(SimpleAmqpClient IMPORTED STATIC)
+set_target_properties(SimpleAmqpClient PROPERTIES
+    IMPORTED_LOCATION ${CLIENT_PATH}/libSimpleAmqpClient.so)
+
+
+find_package(Boost COMPONENTS thread REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
+
+include_directories(${PROJECT_SOURCE_DIR}/include 
+                     ${PROJECT_SOURCE_DIR}/src 
+                     ${PROJECT_SOURCE_DIR}/subscriber)
+
+set(RobiLib include/JSONConfig.h src/JSONConfig.cpp)
+# file(GLOB SOURCE *.h* *.cpp* *.hpp)
+#INCLUDE_DIRECTORIES(SYSTEM ${SimpleAmqpClient_INCLUDE_DIRS})
+
+add_executable(Subscriber subscriber/main.cpp)
+target_link_libraries(Subscriber SimpleAmqpClient Boost::thread nlohmann_json)
+# target_link_libraries(Subscriber RobLib)
+# add_library(Subscriber${sources} ${headers})
+
+add_executable(Publisher publisher/main.cpp)
+target_link_libraries(Publisher SimpleAmqpClient Boost::thread nlohmann_json)
+# target_link_libraries(Publisher RobLib)
+
+# add_executable(SocketServer simple_server.cpp)
+# target_link_libraries(SocketServer SocketSockLib)
+
+# add_executable(SocketClient simple_client.cpp)
+# target_link_libraries(SocketClient SocketSockLib)
+
+# add_executable(CameraServer camera_server.cpp)
+# target_link_libraries(CameraServer SocketSockLib)
+
+# add_executable(CameraClient camera_client.cpp)
+# target_link_libraries(CameraClient SocketSockLib)
+
+# Create an IMPORTED library *target*
+# add_library(SimpleAmqpClient IMPORTED)
+# Set IMPORTED_LOCATION *property* for this target
+# set_target_properties(SimpleAmqpClient PROPERTIES
+#     IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SimpleAmqpClientLib/libSimpleAmqpClient.so)
+# Then use library *target* for linking with
+# target_link_libraries(RabbitMQClient PUBLIC SimpleAmqpClient)
+
+# target_link_libraries(${PROJECT_NAME} SimpleAmqpClient protobuf ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries(${PROJECT_NAME} SimpleAmqpClient PUBLIC Boost::thread )
+
