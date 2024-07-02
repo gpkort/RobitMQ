@@ -35,20 +35,20 @@ int main(int argc, char** args)
         subChannelPtr->BindQueue(queueName, 
                              ci.getExchange(), 
                             TOPIC);
-        auto consumerName = subChannelPtr->BasicConsume(queueName, "camera");
+        auto consumerName = subChannelPtr->BasicConsume(queueName, "");
 
         while (1)
         {
             std::string a;
             Envelope::ptr_t envelope;
-
+            std::cout << "Waiting..." << std::endl;
             bool got_msg = subChannelPtr->BasicConsumeMessage( consumerName, envelope);
             if (!got_msg)
             {
                 std::cout << "timeout\n" << std::endl;
                 break;
             }
-
+            std::cout << "Done..." << std::endl;
             a = envelope->Message()->Body();
             std::cout << a << std::endl;            
         }

@@ -11,18 +11,25 @@ bool JSONConfig::init(ConnectionInfo& connectionInfo)
         std::cout << "File " << mFilePath << " can't be opened." << std::endl;
         return false;
     }
+    else
+    {
+        std::cout << "File Found!" << std::endl;
+    }
 
     try
     {
         nlohmann::json data = nlohmann::json::parse(file);
+        std::cout << "File Found!" << data << std::endl;
+        std::cout << "host" << data["rabbitmq"]["host"] << std::endl;
+        // std::cout << "host" << data["host"] << std::endl;
 
         connectionInfo.init(
-            data["host"], 
-            data["port"], 
-            data["user"], 
-            data["password"],
-            data["exchange"],
-            data["queue"]);
+            data["rabbitmq"]["host"], 
+            data["rabbitmq"]["port"], 
+            data["rabbitmq"]["user"], 
+            data["rabbitmq"]["password"],
+            data["rabbitmq"]["exchange"],
+            data["rabbitmq"]["queue"]);
 
         return true;
     }

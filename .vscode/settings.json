@@ -71,6 +71,7 @@
         "fstream": "cpp",
         "future": "cpp",
         "semaphore": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "ios": "cpp"
     }
 }
