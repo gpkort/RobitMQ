@@ -2,7 +2,7 @@
 
 JSONConfig::JSONConfig(std::string filepath): mFilePath(filepath) {}
 
-bool JSONConfig::init(ConnectionInfo& connectionInfo)
+bool JSONConfig::init()
 {
     std::ifstream file(mFilePath);
 
@@ -13,23 +13,23 @@ bool JSONConfig::init(ConnectionInfo& connectionInfo)
     }
     else
     {
-        std::cout << "File Found!" << std::endl;
+        std::cout << "Config File Found!" << std::endl;
     }
 
     try
     {
         nlohmann::json data = nlohmann::json::parse(file);
-        std::cout << "File Found!" << data << std::endl;
-        std::cout << "host" << data["rabbitmq"]["host"] << std::endl;
-        // std::cout << "host" << data["host"] << std::endl;
 
-        connectionInfo.init(
+        mConnectInfo.init(
             data["rabbitmq"]["host"], 
             data["rabbitmq"]["port"], 
             data["rabbitmq"]["user"], 
             data["rabbitmq"]["password"],
             data["rabbitmq"]["exchange"],
             data["rabbitmq"]["queue"]);
+
+        mHardwareName = data["hardware_name"];
+        mTopics = data["topics"].get<std::vector<std::string>>();
 
         return true;
     }

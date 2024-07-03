@@ -2,55 +2,46 @@
 #include <iostream>
 #include "../include/JSONConfig.h"
 #include "../include/ConnectionInfo.h"
+#include "../include/RabbitChannel.h"
 
 
 using namespace AmqpClient;
 
-const std::string TOPIC = "snapshot.take";
 const std::string CONFIG_FILE = "RobitMQ.json";
 
 int main(int argc, char** args)
 {
     ConnectionInfo ci;
-    JSONConfig jc("RobitMQ.json");
+    JSONConfig jc("RobitMQ.json"); 
+    RabbitChannel rabbitChannel;   
 
-    if(jc.init(ci))
+    if(jc.init())
     {
-        std::cout << "Test: " << ci.dump() << std::endl;
+        auto ci = jc.ConectionInfo();
+        
+        rabbitChannel.init(ci, jc.HardwareName());
 
-        Channel::OpenOpts opts;
-        opts.host = ci.getHost();
-        opts.port = ci.getPort();
-        opts.auth = Channel::OpenOpts::BasicAuth(ci.getUser(), ci.getPassword());
-        std::cout << "Made opts" << std::endl; 
+        std::cout << "hw: " << jc.HardwareName() << ", topic: " << jc.TopicVector().size() << std::endl;
+        
 
-        auto subChannelPtr = Channel::Open(opts);
-        std::cout << "Opened channel" << std::endl;
-
-        subChannelPtr->DeclareExchange(ci.getExchange(), 
-                                      Channel::EXCHANGE_TYPE_TOPIC, 
-                                      false, true, false);
-
-        auto queueName = subChannelPtr->DeclareQueue("", false, false, true, true);
-        subChannelPtr->BindQueue(queueName, 
-                             ci.getExchange(), 
-                            TOPIC);
-        auto consumerName = subChannelPtr->BasicConsume(queueName, "");
-
-        while (1)
+        while (true)
         {
-            std::string a;
-            Envelope::ptr_t envelope;
-            std::cout << "Waiting..." << std::endl;
-            bool got_msg = subChannelPtr->BasicConsumeMessage( consumerName, envelope);
-            if (!got_msg)
-            {
-                std::cout << "timeout\n" << std::endl;
+            Envelope::ptr_t envelope;            
+            bool got_msg = rabbitChannel.consumeMessage(envelope);
+
+            if (got_msg)            {
+                std::cout << "Received..." << std::endl;
+                // routing_key
+                auto a = envelope->Message()->Body();
+                auto top = envelope->ConsumerTag();
+                std::cout << top << std::endl; 
+                std::cout << a << std::endl;  
                 break;
             }
-            std::cout << "Done..." << std::endl;
-            a = envelope->Message()->Body();
-            std::cout << a << std::endl;            
+            else 
+            {
+                std::cout << "Nothing..." << std::endl;               
+            }      
         }
     }
     

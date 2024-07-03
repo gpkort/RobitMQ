@@ -1,4 +1,5 @@
 {
+    "hardware_name": "orange-pi_zero_2W_0",
     "rabbitmq": 
     {
         "host": "192.168.0.110",
@@ -8,8 +9,5 @@
         "exchange": "robot",
         "queue": "robot"
     },
-    "topics":
-    {
-        "snapshot_key":"snapshot.take"
-    }
+    "topics":["servo_move", "test"]    
 }
