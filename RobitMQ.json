@@ -1,13 +1,8 @@
 {
-    "hardware_name": "orange-pi_zero_2W_0",
-    "rabbitmq": 
-    {
-        "host": "192.168.0.110",
-        "port": 5672,
-        "user": "robot",
-        "password": "robot",
-        "exchange": "robot",
-        "queue": "robot"
-    },
-    "topics":["servo_move", "test"]    
+    "host": "192.168.0.110",
+    "port": 5672,
+    "user": "robot",
+    "password": "robot",
+    "exchange": "robot",
+    "timeout": 200
 }

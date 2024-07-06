@@ -1,80 +1,84 @@
 #include <SimpleAmqpClient/SimpleAmqpClient.h>
+#include <nlohmann/json.hpp>
+#include "../include/RabbitConnector.hpp"
+
 #include <iostream>
-#include "../include/JSONConfig.h"
-#include "../include/ConnectionInfo.h"
-#include "../include/RabbitChannel.h"
+#include <fstream>
 
-
-using namespace AmqpClient;
 
 const std::string CONFIG_FILE = "RobitMQ.json";
+bool kill = false;
+
+void FromJson(const nlohmann::json& j, Rabbit::ConnectionInfo& ci) 
+{
+    j.at("host").get_to(ci.host);
+    j.at("port").get_to(ci.port);
+    j.at("user").get_to(ci.user);
+    j.at("password").get_to(ci.password);
+    j.at("exchange").get_to(ci.exchange);
+    j.at("timeout").get_to(ci.timeout);
+}
+
+void camera_move_callback(AmqpClient::Envelope::ptr_t& envelope) 
+{
+    std::cout << "Received :" << envelope->RoutingKey() << ", " << envelope->Message()->Body() << std::endl;
+}
+
+void test_callback(AmqpClient::Envelope::ptr_t& envelope) 
+{
+    auto mess = envelope->Message()->Body();
+    std::cout << "Received :" << envelope->RoutingKey() << ", " << mess << std::endl;
+    
+
+    if(mess == "unsubscribe")
+    {
+        std::cout << "Unsubscribing camera.." << std::endl;
+        Rabbit::UnsubscribeFromTopic("camera_move");
+    }         
+    else if(mess == "subscribe")
+    {
+        std::cout << "Subscribing camera.." << std::endl;
+        Rabbit::SubscribeToTopic("camera_move", camera_move_callback);
+    }      
+    else if(mess ==  "kill")
+    {
+        std::cout << "killing" << std::endl;
+        kill = true;
+        Rabbit::StopConsuming();
+    }   
+}
 
 int main(int argc, char** args)
 {
-    ConnectionInfo ci;
-    JSONConfig jc("RobitMQ.json"); 
-    RabbitChannel rabbitChannel;   
+    
+    std::ifstream file(CONFIG_FILE);
+    Rabbit::ConnectionInfo ci;
 
-    if(jc.init())
+    if(file.is_open())
     {
-        auto ci = jc.ConectionInfo();
-        
-        rabbitChannel.init(ci, jc.HardwareName());
+        nlohmann::json data = nlohmann::json::parse(file);
+        FromJson(data, ci);
 
-        std::cout << "hw: " << jc.HardwareName() << ", topic: " << jc.TopicVector().size() << std::endl;
-        
-
-        while (true)
-        {
-            Envelope::ptr_t envelope;            
-            bool got_msg = rabbitChannel.consumeMessage(envelope);
-
-            if (got_msg)            {
-                std::cout << "Received..." << std::endl;
-                // routing_key
-                auto a = envelope->Message()->Body();
-                auto top = envelope->ConsumerTag();
-                std::cout << top << std::endl; 
-                std::cout << a << std::endl;  
-                break;
-            }
-            else 
-            {
-                std::cout << "Nothing..." << std::endl;               
-            }      
-        }
+        std::cout << "port: " << ci.port << ", host: " << ci.host << std::endl;
     }
-    
+    else
+    {
+        std::cout << "File " << CONFIG_FILE << " can't be opened." << std::endl;
+        return 1;
+    }
 
-    
-    
-    
+    file.close();
+    Rabbit::initChannel(ci); 
+      
 
+    Rabbit::SubscribeToTopic("test", test_callback);
+    Rabbit::SubscribeToTopic("camera_move", camera_move_callback);
+    Rabbit::BeginConsuming();
+    
+    while(!kill) {}
+    std::cout << "Goodbye!" << std::endl;
     
     
 }
 
 
-/*
-subChannelPtr->DeclareExchange("robot", AmqpClient::Channel::EXCHANGE_TYPE_TOPIC, false, true, false);
-    auto queueName = subChannelPtr->DeclareQueue("", false, false, true, true);
-    subChannelPtr->BindQueue(queueName, "","");
-
-    std::cout << "Queue Name: " << queueName << std::endl;
-
-    
-
-    auto consumeName = subChannelPtr->BasicConsume(queueName, "camera");
-
-    std::cout << "Consume Name: " << consumeName << std::endl;
-
-    // auto got_msg = subChannelPtr->BasicConsumeMessage( mConsumerTag, message, timeout );
-
-    while(1){
-        
-
-    m_channel->BasicConsume(m_consumerQueue, m_consumerQueue);
-    }
-
-    return 0;
-*/
