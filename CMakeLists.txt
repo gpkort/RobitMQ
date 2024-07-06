@@ -24,7 +24,7 @@ find_package(nlohmann_json REQUIRED)
 include_directories(include )
 
 
-add_executable(Subscriber subscriber/main.cpp include/RabbitSubscriber.hpp)
+add_executable(Subscriber subscriber/main.cpp include/RabbitConnector.hpp)
 target_include_directories(Subscriber PRIVATE ${HEAD_DIR})
 target_link_libraries(Subscriber SimpleAmqpClient Boost::thread nlohmann_json)                                 
 
